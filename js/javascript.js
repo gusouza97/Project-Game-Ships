@@ -4,8 +4,25 @@ function start() { // Inicio da função start()
 	let inicio = document.getElementById("inicio")
 	let fundoGame = document.getElementById("fundoGame")
 
+	let somDisparo = document.getElementById("somDisparo");
+	let somExplosao = document.getElementById("somExplosao");
+	let musica = document.getElementById("musica");
+	let somGameover = document.getElementById("somGameover");
+	let somPerdido = document.getElementById("somPerdido");
+	let somResgate = document.getElementById("somResgate");
+
 	// Initialize Start
 	inicio.style.visibility = "hidden";
+
+	//Música em loop
+	musica.addEventListener("ended", function () { musica.currentTime = 0; musica.play(); }, false);
+	musica.play();
+
+	let energiaStatus = document.createElement("div")
+	energiaStatus.id = "energia";
+
+	let placarContent = document.createElement("div");
+	placarContent.id = "placar";
 
 	let player = document.createElement("div");
 	player.classList.add("anima1")
@@ -22,6 +39,8 @@ function start() { // Inicio da função start()
 	friend.classList.add("anima3")
 	friend.id = "amigo"
 
+	fundoGame.appendChild(placarContent)
+	fundoGame.appendChild(energiaStatus)
 	fundoGame.appendChild(player)
 	fundoGame.appendChild(inimigoUm)
 	fundoGame.appendChild(inimigoDois)
@@ -35,8 +54,14 @@ function start() { // Inicio da função start()
 
 	// Variables Main 
 	let jogo = {}
+	var energiaAtual = 3;
+	var pontos = 0;
+	var salvos = 0;
+	var perdidos = 0;
 	var fimdejogo = false;
 	var podeAtirar = true;
+	var correAmigo = true;
+	var andaInimigo2 = true;
 	var velocidade = 5;
 	var posicaoY = parseInt(Math.random() * 334);
 	let TECLA = {
@@ -65,9 +90,17 @@ function start() { // Inicio da função start()
 		movefundo();
 		movejogador();
 		moveinimigo1();
-		moveinimigo2();
-		moveamigo();
 		colisao();
+		placar();
+		energia();
+
+		if (andaInimigo2) {
+			moveinimigo2();
+		}
+
+		if (correAmigo) {
+			moveamigo();
+		}
 
 	} // Fim da função loop()
 
@@ -151,7 +184,7 @@ function start() { // Inicio da função start()
 	function disparo() {
 
 		if (podeAtirar == true) {
-
+			somDisparo.play();
 			podeAtirar = false;
 
 			let topo = parseInt(window.getComputedStyle(jogador).top)
@@ -202,6 +235,7 @@ function start() { // Inicio da função start()
 
 		if (colisao1.length > 0) {
 
+			energiaAtual--;
 			let inimigo1X = parseInt(window.getComputedStyle(inimigo1).left)
 			let inimigo1Y = parseInt(window.getComputedStyle(inimigo1).top)
 
@@ -215,15 +249,82 @@ function start() { // Inicio da função start()
 		// jogador com o inimigo2 
 		if (colisao2.length > 0) {
 
-			let inimigo2X = parseInt(window.getComputedStyle(inimigo2).left)
-			let inimigo2Y = parseInt(window.getComputedStyle(inimigo2).top)
-
+			energiaAtual--;
+			let inimigo2X = parseInt($("#inimigo2").css("left"));
+			let inimigo2Y = parseInt($("#inimigo2").css("top"));
 			explosao2(inimigo2X, inimigo2Y);
 
-			inimigo2.remove();
+			let posicaoY = 447;
+			inimigo2.style.left = "750px"
+			inimigo2.style.top = posicaoY + "px"
 
+			inimigo2.style.visibility = "hidden"
+			andaInimigo2 = false;
 			reposicionaInimigo2();
+		}
 
+
+		// Disparo com o inimigo1
+
+		if (colisao3.length > 0) {
+
+			velocidade = velocidade + 0.3;
+			pontos = pontos + 100;
+			let disparo = document.getElementById("disparo")
+
+			let inimigo1X = parseInt(window.getComputedStyle(inimigo1).left)
+			let inimigo1Y = parseInt(window.getComputedStyle(inimigo1).top)
+
+			explosao1(inimigo1X, inimigo1Y);
+			disparo.style.left = "950px"
+
+			posicaoY = parseInt(Math.random() * 334);
+			inimigo1.style.left = "750px"
+			inimigo1.style.top = posicaoY + "px"
+		}
+
+		// Disparo com o inimigo2
+
+		if (colisao4.length > 0) {
+
+			if (andaInimigo2) {
+				pontos = pontos + 50;
+				let disparo = document.getElementById("disparo")
+
+				let inimigo2X = parseInt(window.getComputedStyle(inimigo2).left)
+				let inimigo2Y = parseInt(window.getComputedStyle(inimigo2).top)
+
+				explosao2(inimigo2X, inimigo2Y);
+				disparo.style.left = "950px";
+
+				andaInimigo2 = false;
+				inimigo2.style.visibility = "hidden";
+				reposicionaInimigo2();
+			}
+		}
+
+		// jogador com o amigo
+
+		if (colisao5.length > 0) {
+			somResgate.play();
+			salvos++;
+			correAmigo = false;
+			amigo.style.display = "none";
+			reposicionaAmigo();
+		}
+
+		//Inimigo2 com o amigo
+		if (colisao6.length > 0) {
+
+			perdidos++;
+			var amigoX = parseInt(window.getComputedStyle(amigo).left)
+			var amigoY = parseInt(window.getComputedStyle(amigo).top)
+
+			correAmigo = false;
+			amigo.style.display = "none";
+
+			reposicionaAmigo();
+			explosao3(amigoX, amigoY);
 		}
 
 	} //Fim da função colisao()
@@ -232,6 +333,7 @@ function start() { // Inicio da função start()
 	//Explosão 1
 	function explosao1(inimigo1X, inimigo1Y) {
 
+		somExplosao.play();
 		let explosao1 = document.createElement("div")
 		explosao1.id = "explosao1";
 		fundoGame.appendChild(explosao1)
@@ -265,9 +367,9 @@ function start() { // Inicio da função start()
 			tempoColisao4 = null;
 
 			if (fimdejogo == false) {
-				let inimigoDois = document.createElement("div");
-				inimigoDois.id = "inimigo2"
-				fundoGame.appendChild(inimigoDois)
+				inimigo2.style.left = "750px"
+				andaInimigo2 = true;
+				inimigo2.style.visibility = "visible";
 			}
 
 		}
@@ -277,6 +379,7 @@ function start() { // Inicio da função start()
 	//Explosão2
 	function explosao2(inimigo2X, inimigo2Y) {
 
+		somExplosao.play();
 		let explosao2 = document.createElement("div")
 		explosao2.id = "explosao2";
 		fundoGame.appendChild(explosao2)
@@ -287,7 +390,7 @@ function start() { // Inicio da função start()
 
 		explosao2.animate({ width: "200px", opacity: 0 }, 400);
 
-		var tempoExplosao2 = window.setInterval(removeExplosao2, 1000);
+		var tempoExplosao2 = window.setInterval(removeExplosao2, 400);
 
 		function removeExplosao2() {
 
@@ -301,5 +404,131 @@ function start() { // Inicio da função start()
 	} // Fim da função explosao2()
 
 
+	//Reposiciona Amigo
+
+	function reposicionaAmigo() {
+
+		var tempoAmigo = window.setInterval(reposiciona6, 6000);
+
+		function reposiciona6() {
+
+			let jogadorY = parseInt(window.getComputedStyle(jogador).top)
+
+			window.clearInterval(tempoAmigo);
+			tempoAmigo = null;
+			let check = false;
+
+			if (fimdejogo == false) {
+				correAmigo = true;
+				amigo.style.left = "10px"
+				amigo.style.display = "block";
+
+			}
+
+		}
+
+	} // Fim da função reposicionaAmigo()
+
+
+	//Explosão3
+
+	function explosao3(amigoX, amigoY) {
+
+		somPerdido.play();
+		let explosao3 = document.createElement("div")
+		explosao3.id = "explosao3"
+		explosao3.classList.add("anima4")
+
+		explosao3.style.top = amigoY + "px"
+		explosao3.style.left = amigoX + "px"
+
+		fundoGame.appendChild(explosao3)
+
+		var tempoExplosao3 = window.setInterval(resetaExplosao3, 1000);
+
+		function resetaExplosao3() {
+			explosao3.remove();
+			window.clearInterval(tempoExplosao3);
+			tempoExplosao3 = null;
+
+		}
+
+	} // Fim da função explosao3
+
+
+	function placar() {
+
+		let placar = document.getElementById("placar")
+		placar.innerHTML = "<h2>Pontos: " + pontos + " Salvos: " + salvos + " Perdidos: " + perdidos + "</h2>";
+
+	} //fim da função placar()
+
+
+	//Barra de energia
+
+	function energia() {
+
+		let energia = document.getElementById("energia")
+
+		if (energiaAtual == 3) {
+			energia.style.backgroundImage = "url(imgs/energia3.png)";
+		}
+
+		if (energiaAtual == 2) {
+			energia.style.backgroundImage = "url(imgs/energia2.png)";
+		}
+
+		if (energiaAtual == 1) {
+			energia.style.backgroundImage = "url(imgs/energia1.png)";
+		}
+
+		if (energiaAtual == 0) {
+			energia.style.backgroundImage = "url(imgs/energia0.png)";
+			gameOver();
+		}
+
+	} // Fim da função energia()
+
+	//Função GAME OVER
+	function gameOver() {
+		fimdejogo = true;
+		musica.pause();
+		somGameover.play();
+
+		window.clearInterval(jogo.timer);
+		jogo.timer = null;
+
+		jogador.remove();
+		inimigo1.remove();
+		inimigo2.remove();
+		amigo.remove();
+
+		let fim = document.createElement("div");
+		fim.id = "fim";
+		fundoGame.appendChild(fim);
+
+		let gameOver = document.getElementById("fim");
+		gameOver.innerHTML = "<h1> Game Over </h1><p>Sua pontuação foi: " + pontos + "</p>" + "<button id='reinicia' onClick='reiniciaJogo()'>Jogar Novamente</button>"
+	} // Fim da função gameOver();
+
 } // Fim da função start
 
+function reiniciaJogo() {
+	somGameover.pause();
+	$("#fim").remove();
+	start();
+	
+} //Fim da função reiniciaJogo
+
+// Reinicia jogo
+/* let reinicia = document.getElementById("reinicia");
+
+reinicia.addEventListener("click", () => {
+	let fim = getElementById("fim")
+	somGameover.pause();
+
+	fim.remove();
+	start();
+}) */
+
+//Fim da função reiniciaJogo
