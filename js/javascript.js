@@ -513,22 +513,10 @@ function start() { // Inicio da função start()
 
 } // Fim da função start
 
+// Reinicia jogo
 function reiniciaJogo() {
 	somGameover.pause();
-	$("#fim").remove();
-	start();
-	
-} //Fim da função reiniciaJogo
-
-// Reinicia jogo
-/* let reinicia = document.getElementById("reinicia");
-
-reinicia.addEventListener("click", () => {
-	let fim = getElementById("fim")
-	somGameover.pause();
-
 	fim.remove();
 	start();
-}) */
-
-//Fim da função reiniciaJogo
+	
+} //Fim da função reiniciaJogo */
